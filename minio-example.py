@@ -31,10 +31,24 @@ def train_fn(config):
     session.report({"data": 1}, checkpoint=Checkpoint.from_dict({"data": 1}))
 
 
+class MyTrainable(tune.Trainable):
+    def step(self):
+        print("step")
+        return {"score": 1}
+
+    def save_checkpoint(self, tmp_checkpoint_dir):
+        checkpoint_path = os.path.join(tmp_checkpoint_dir, "model.txt")
+        with open(checkpoint_path, "w") as f:
+            f.write("asdf")
+        return checkpoint_path
+
+
 tuner = tune.Tuner(
-    train_fn,
+    MyTrainable,  # or use train_fn
     run_config=air.RunConfig(
-        storage_path="s3://minio-test?endpoint_override=http://localhost:9000"
+        name="trainable_cls_test",
+        storage_path="s3://minio-test?endpoint_override=http://localhost:9000",
+        stop={"training_iteration": 1},
     ),
 )
 
